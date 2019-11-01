@@ -15,21 +15,19 @@
 <body>
   <h2>People Online:</h2>
   <ul id="people"></ul>
-  <div id="authstuff">
-
-  </div>
+  <div id="authstuff"></div>
   <div id="namestuff">
     <input type="text" id="myname" placeholder="Hi, my name is" />
-    <input type="button" id="join">Click to join</input>
-    <input type="button" id="leave">Click to leave</input>
-    <input type="button" id="edit">Click to change your name</input>
+    <input type="button" id="join" value="Click to Join"></input>
+    <input type="button" id="leave" value="Click to Leave"></input>
+    <input type="button" id="edit" value="Click to Change Name"></input>
   </div>
   <script>
     $(document).ready(function () {
       var theDB = firebase.database();
-      var provider = new firebase.auth.GoogleAuthProvider();
+      var provider = new firebase.auth.GithubAuthProvider();
       firebase.auth().signInWithPopup(provider).then(function (result) {
-        // This gives you a Google Access Token. You can use it to access the Google API.
+        // This gives you a GitHub Access Token. You can use it to access the GitHub API.
         var token = result.credential.accessToken;
         // The signed-in user info.
         var user = result.user;
@@ -43,6 +41,8 @@
         var email = error.email;
         // The firebase.auth.AuthCredential type that was used.
         var credential = error.credential;
+        console.log(errorCode);
+        console.log(errorMessage);
       });
       //This is a silly andy trick, ignore or not
       var myid = "";
@@ -55,8 +55,7 @@
         }
       }
 
-
-      //here is the interesting stuff
+      //Here is the interesting stuff
       $("#join").click(function () { //CREATE
         var name = $("#myname").val();
         if (!!name) {

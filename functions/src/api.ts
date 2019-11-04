@@ -40,6 +40,8 @@ api.get('/users', function (req, res) {
             const childKey = childSnapshot.key;
             users.push(childKey);
         });
+        res.setHeader('Content-Type', 'application/json');
+        res.statusCode = 200;
         res.send(users);
     });
 });
@@ -47,6 +49,8 @@ api.get('/users/:id', function (req, res) {
     // tslint:disable-next-line: no-floating-promises
     db.ref(`/users/${req.params.id}`).once('value').then(function (snapshot) {
         const username = (snapshot.val().name) || 'DNE';
+        res.setHeader('Content-Type', 'application/json');
+        res.statusCode = 200;
         res.send(username);
     })
     console.log(`User ${req.params.id} fetched`);
@@ -59,9 +63,13 @@ api.post('users/:id', function (req, res) {
         posts: ""
     }, function (err) {
         if (err) {
+            res.setHeader('Content-Type', 'application/json');
+            res.statusCode = 400;
             res.send(err);
             console.log(err);
         } else {
+            res.setHeader('Content-Type', 'application/json');
+            res.statusCode = 200;
             res.send(name);
             console.log(`User ${req.params.id} created`);
         }
@@ -74,9 +82,13 @@ api.put('users/:id', function (req, res) {
         online: true,
     }, function (err) {
         if (err) {
+            res.setHeader('Content-Type', 'application/json');
+            res.statusCode = 400;
             res.send(err);
             console.log(err);
         } else {
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
             res.send(`User ${req.params.id} new name: ${req.body.name}`);
             console.log(`User ${req.params.id} new name: ${req.body.name}`);
         }
@@ -85,6 +97,8 @@ api.put('users/:id', function (req, res) {
 api.delete('users/:id', function (req, res) {
     // tslint:disable-next-line: no-floating-promises
     db.ref(`/users/${req.params.id}`).remove(); 
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json');
     res.send(`User ${req.params.body} deleted`);
     console.log(`User ${req.params.body} deleted`); 
 });
@@ -99,6 +113,8 @@ api.get('/subreddits', function (req, res) {
             const childKey = childSnapshot.key;
             subreddits.push(childKey);
         });
+        res.setHeader('Content-Type', 'application/json');
+        res.statusCode = 200;
         res.send(subreddits);
     });
 });
@@ -111,6 +127,8 @@ api.get('/subreddits/:subreddit', function (req, res) {
             const childKey = childSnapshot.key;
             posts.push(childKey);
         });
+        res.setHeader('Content-Type', 'application/json');
+        res.statusCode = 200;
         res.send(posts);
     });
 });
@@ -120,9 +138,13 @@ api.post('subreddits/:subreddit', function (req, res) {
         name: req.params.subreddit
     }, function (err) {
         if (err) {
+            res.setHeader('Content-Type', 'application/json');
+            res.statusCode = 400;
             res.send(err);
             console.log(err);
         } else {
+            res.setHeader('Content-Type', 'application/json');
+            res.statusCode = 200;
             res.send(req.params.subreddit);
             console.log(`Subreddit ${req.params.subreddit} created`);
         }
@@ -141,6 +163,8 @@ api.get('/subreddits/:subreddit/:post', function (req, res) {
     db.ref(`/subreddits/${req.params.subreddit}/${req.params.post}`).once('value').then(function (snapshot) {
         const title = snapshot.val().title || 'DNE';
         const content = snapshot.val().content || 'DNE';
+        res.setHeader('Content-Type', 'application/json');
+        res.statusCode = 200;
         res.send([title, content]);
     })
     console.log(`User ${req.params.id} fetched`);
@@ -152,9 +176,13 @@ api.post('subreddits/:subreddit/:post', function (req, res) {
         content: req.body.content
     }, function (err) {
         if (err) {
+            res.setHeader('Content-Type', 'application/json');
+            res.statusCode = 400;
             res.send(err);
             console.log(err);
         } else {
+            res.setHeader('Content-Type', 'application/json');
+            res.statusCode = 200;
             res.send(name);
             console.log(`User ${req.params.body} created`);
         }
@@ -166,9 +194,13 @@ api.put('subreddits/:subreddit/:post', function (req, res) {
         content: req.body.content
     }, function (err) {
         if (err) {
+            res.setHeader('Content-Type', 'application/json');
+            res.statusCode = 400;
             res.send(err);
             console.log(err);
         } else {
+            res.setHeader('Content-Type', 'application/json');
+            res.statusCode = 200;
             res.send(`Post ${req.params.post} new title: ${req.body.title}`);
             console.log(`Post ${req.params.post} new title: ${req.body.title}`);
         }
@@ -177,7 +209,8 @@ api.put('subreddits/:subreddit/:post', function (req, res) {
 api.delete('subreddits/:subreddit/:post', function (req, res) {
     // tslint:disable-next-line: no-floating-promises
     db.ref(`subreddits/${req.params.subreddit}/${req.params.post}`).remove();
-
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json');
     res.send(`Post ${req.params.post} deleted`);
     console.log(`Post ${req.params.post} deleted`);
 });

@@ -1,9 +1,10 @@
 //npm run build
 //nodemon lib/api.js
+//$env:GOOGLE_APPLICATION_CREDENTIALS="C:\Users\bookw\OneDrive\College\Coding\CPEG470\WebAppSecTeam-32\redditcloneproj-ae2b4-firebase-adminsdk-mcmkd-016712036b.json"
 import functions = require('firebase-functions');
 import bodyParser = require('body-parser');
 import favicon = require('serve-favicon');
-import firebase = require('firebase');
+import admin = require('firebase-admin');
 import express = require('express');
 import cors = require('cors');
 import http = require('http');
@@ -13,20 +14,21 @@ const api = express();
 api.use('./', express.static(path.join(__dirname, './public')));
 api.use(bodyParser.urlencoded({ extended: false }));
 api.set('port', process.env.PORT || 4000);
-api.use(favicon('./images/vm.ico'));
+api.use(favicon('../images/vm.ico'));
 api.use(cors({ origin: true }));
 api.use(bodyParser.json())
 
-firebase.initializeApp({
-    credential: './firebaseConfig.json',
+const serviceAccount = require('../../redditcloneproj-ae2b4-firebase-adminsdk-mcmkd-016712036b.json')
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
     databaseURL: "https://redditcloneproj-ae2b4.firebaseio.com"
 });
 
 // Get a reference to the database service
-const db = firebase.app().database();
-const ref = firebase.app().database().ref();
-const usersRef = ref.child('/users');
-const subredditsRef = ref.child('/subreddits');
+const db = admin.database();
+const root = db.ref();
+const usersRef = root.child('/users');
+const subredditsRef = root.child('/subreddits');
 
 //Users
 api.get('/users', function (req, res) {
@@ -51,32 +53,40 @@ api.get('/users/:id', function (req, res) {
 });
 api.post('users/:id', function (req, res) {
     // tslint:disable-next-line: no-floating-promises
-    ref.child("users").set({
+    root.child("users").set({
         name: req.body.name,
         online: true,
-        posts: null
-    });
-    res.send(name);
-    console.log(`User ${req.params.id} created`);
+        posts: ""
+    }, function (err) {
+        if (err) {
+            res.send(err);
+            console.log(err);
+        } else {
+            res.send(name);
+            console.log(`User ${req.params.id} created`);
+        }
+    });    
 });
 api.put('users/:id', function (req, res) {
     // tslint:disable-next-line: no-floating-promises
     db.ref(`/users/${req.params.id}`).update({
         name: req.body.name,
         online: true,
-    })
-    res.send(`User ${req.params.id} new name: ${req.body.name}`);
-    console.log(`User ${req.params.id} new name: ${req.body.name}`);
+    }, function (err) {
+        if (err) {
+            res.send(err);
+            console.log(err);
+        } else {
+            res.send(`User ${req.params.id} new name: ${req.body.name}`);
+            console.log(`User ${req.params.id} new name: ${req.body.name}`);
+        }
+    });
 });
 api.delete('users/:id', function (req, res) {
     // tslint:disable-next-line: no-floating-promises
-    db.ref(`/users/${req.params.id}`).update({
-        name: null,
-        online: null,
-        posts: null
-    })
+    db.ref(`/users/${req.params.id}`).remove(); 
     res.send(`User ${req.params.body} deleted`);
-    console.log(`User ${req.params.body} deleted`);
+    console.log(`User ${req.params.body} deleted`); 
 });
 
 //Subreddits
@@ -108,15 +118,19 @@ api.post('subreddits/:subreddit', function (req, res) {
     // tslint:disable-next-line: no-floating-promises
     db.ref(`/subreddits/${req.params.subreddit}`).set({
         name: req.params.subreddit
+    }, function (err) {
+        if (err) {
+            res.send(err);
+            console.log(err);
+        } else {
+            res.send(req.params.subreddit);
+            console.log(`Subreddit ${req.params.subreddit} created`);
+        }
     });
-    res.send(req.params.subreddit);
-    console.log(`Subreddit ${req.params.subreddit} created`);
 });
 api.delete('subreddits/:subreddit', function (req, res) {
     // tslint:disable-next-line: no-floating-promises
-    db.ref(`/subreddits/${req.params.subreddit}`).set({
-        name: null
-    });
+    db.ref(`/subreddits/${req.params.subreddit}`).remove();
     res.send(req.params.subreddit);
     console.log(`Subreddit ${req.params.subreddit} deleted`);
 });
@@ -125,8 +139,9 @@ api.delete('subreddits/:subreddit', function (req, res) {
 api.get('/subreddits/:subreddit/:post', function (req, res) {
     // tslint:disable-next-line: no-floating-promises
     db.ref(`/subreddits/${req.params.subreddit}/${req.params.post}`).once('value').then(function (snapshot) {
-        const post = (snapshot.val().content && snapshot.val().title) || 'DNE';
-        res.send(post);
+        const title = snapshot.val().title || 'DNE';
+        const content = snapshot.val().content || 'DNE';
+        res.send([title, content]);
     })
     console.log(`User ${req.params.id} fetched`);
 });
@@ -135,24 +150,34 @@ api.post('subreddits/:subreddit/:post', function (req, res) {
     db.ref(`subreddits/${req.params.subreddit}/${req.params.post}`).set({
         name: req.body.title,
         content: req.body.content
+    }, function (err) {
+        if (err) {
+            res.send(err);
+            console.log(err);
+        } else {
+            res.send(name);
+            console.log(`User ${req.params.body} created`);
+        }
     });
-    res.send(name);
-    console.log(`User ${req.params.body} created`);
 });
 api.put('subreddits/:subreddit/:post', function (req, res) {
     // tslint:disable-next-line: no-floating-promises
     db.ref(`subreddits/${req.params.subreddit}/${req.params.post}`).set({
         content: req.body.content
+    }, function (err) {
+        if (err) {
+            res.send(err);
+            console.log(err);
+        } else {
+            res.send(`Post ${req.params.post} new title: ${req.body.title}`);
+            console.log(`Post ${req.params.post} new title: ${req.body.title}`);
+        }
     });
-    res.send(`Post ${req.params.post} new title: ${req.body.title}`);
-    console.log(`Post ${req.params.post} new title: ${req.body.title}`);
 });
 api.delete('subreddits/:subreddit/:post', function (req, res) {
     // tslint:disable-next-line: no-floating-promises
-    db.ref(`subreddits/${req.params.subreddit}/${req.params.post}`).set({
-        title: null,
-        content: null,
-    })
+    db.ref(`subreddits/${req.params.subreddit}/${req.params.post}`).remove();
+
     res.send(`Post ${req.params.post} deleted`);
     console.log(`Post ${req.params.post} deleted`);
 });
